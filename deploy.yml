@@ -1,0 +1,37 @@
+- name: Download Artifact from Nexus using curl
+  hosts: all
+  gather_facts: false
+  vars:
+    nexus_url: "{{ nexus_host }}/repository/"
+    nexus_repo: "{{ nexus_repo }}/"
+    artifact_group: "{{ artifact_group }}"
+    artifact_name: "{{ artifact_name }}"
+    artifact_version: "{{ artifact_version }}"
+    artifact_extension: "{{ artifact_extension }}"
+    nexus_username: "admin"
+    nexus_password: "{{ nexus_password }}"
+    download_destination: "/tmp/{{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }}"
+    docker_image_name: "{{ artifact_name }}"
+    docker_image_tag: "{{ build_no }}"
+    deploy_port: "{{ deploy_port }}"
+  tasks:
+    - name: Download Artifact from Nexus using curl
+      command: "curl -o {{ download_destination }} -u {{ nexus_username }}:{{ nexus_password }} {{ nexus_url }}/{{ nexus_repo }}/{{ artifact_group | replace('.', '/') }}/{{ artifact_name }}/{{ artifact_version }}/{{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }}"
+
+    - name: Create Dockerfile with content
+      copy:
+        content: |
+          FROM openjdk:8-jre-alpine
+          WORKDIR /app
+          COPY {{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }} /app/{{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }}
+          CMD ["java", "-jar", "{{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }}"]
+        dest: /tmp/dockerfile
+
+    - name: Build Docker image
+      command: docker build -t {{ docker_image_name }}:{{ docker_image_tag }} .
+      args:
+        chdir: /tmp
+
+    - name: Run Docker container
+      command: |
+       docker run -d -p {{ deploy_port }}:8080 --name {{ docker_image_name }}_container {{ docker_image_name }}:{{ docker_image_tag }}
