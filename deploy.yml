@@ -1,7 +1,9 @@
+---
 - name: Download Artifact from Nexus using curl
   hosts: all
   gather_facts: false
   vars:
+    #nexus_url: "http://35.154.44.121:8082/repository/"
     nexus_url: "{{ nexus_host }}/repository/"
     nexus_repo: "{{ nexus_repo }}/"
     artifact_group: "{{ artifact_group }}"
@@ -28,10 +30,10 @@
         dest: /tmp/dockerfile
 
     - name: Build Docker image
-      command: docker build -t {{ docker_image_name }}:{{ docker_image_tag }} .
+      command: docker build -t {{ docker_image_name | lower }}:{{ docker_image_tag }} .
       args:
         chdir: /tmp
 
     - name: Run Docker container
       command: |
-       docker run -d -p {{ deploy_port }}:8080 --name {{ docker_image_name }}_container {{ docker_image_name }}:{{ docker_image_tag }}
+       docker run -d -p {{ deploy_port }}:8080 --name {{ docker_image_name | lower }}_container {{ docker_image_name }}:{{ docker_image_tag }}
