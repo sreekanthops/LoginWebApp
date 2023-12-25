@@ -3,7 +3,6 @@
   hosts: all
   gather_facts: false
   vars:
-    #nexus_url: "http://35.154.44.121:8082/repository/"
     nexus_url: "{{ nexus_host }}/repository/"
     nexus_repo: "{{ nexus_repo }}"
     artifact_group: "{{ artifact_group }}"
@@ -16,6 +15,7 @@
     docker_image_name: "{{ artifact_name }}"
     docker_image_tag: "{{ build_no }}"
     deploy_port: "{{ deploy_port }}"
+    docker_container_name: "{{ docker_image_name | lower }}_container"
   tasks:
     - name: Download Artifact from Nexus using curl
       command: "curl -o {{ download_destination }} -u {{ nexus_username }}:{{ nexus_password }} {{ nexus_url }}/{{ nexus_repo }}/{{ artifact_group | replace('.', '/') }}/{{ artifact_name }}/{{ artifact_version }}/{{ artifact_name }}-{{ artifact_version }}.{{ artifact_extension }}"
@@ -34,6 +34,10 @@
       args:
         chdir: /tmp
 
+    - name: Stop and remove existing Docker container if it exists
+      command: docker rm -f {{ docker_container_name }}
+      ignore_errors: true
+
     - name: Run Docker container
       command: |
-       docker run -d -p {{ deploy_port }}:8080 --name {{ docker_image_name | lower }}_container {{ docker_image_name }}:{{ docker_image_tag }}
+        docker run -d -p {{ deploy_port }}:8080 --name {{ docker_container_name }} {{ docker_image_name }}:{{ docker_image_tag }}
