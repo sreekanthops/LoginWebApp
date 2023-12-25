@@ -3,7 +3,7 @@ pipeline {
     
     parameters {
         string(name: 'HOST', defaultValue: '3.111.171.172', description: 'Inventory host machine')
-        string(name: 'NEXUS_URL', defaultValue: '15.207.117.191:8082/', description: 'Nexus server URL')
+        string(name: 'NEXUS_HOST', defaultValue: 'http://15.207.117.191:8082', description: 'Nexus server URL')
         string(name: 'REPOSITORY', defaultValue: 'mytask', description: 'Nexus repository')
         string(name: 'GROUP_ID', defaultValue: 'com', description: 'Nexus Group ID')
         string(name: 'ARTIFACT_ID', defaultValue: 'executable-jar', description: 'Nexus artifact ID')
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     sh "echo ${HOST} > inv.ini"
-                    sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i inv.ini deploy.yml -e nexus_url=${NEXUS_URL} -e nexus_repo=${REPOSITORY} -e artifact_group=${GROUP_ID} -e artifact_name=${ARTIFACT_ID} -e artifact_version=${VERSION} -e artifact_extension=${ARTIFACT_TYPE} -e nexus_password=${NEXUS_CREDENTIALS} -e nexus_password=${nexus_password} -e build_no=${BUILD_NUMBER} -e deploy_port=${DEPLOY_PORT}"
+                    sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i inv.ini deploy.yml -e nexus_host=${NEXUS_HOST} -e nexus_repo=${REPOSITORY} -e artifact_group=${GROUP_ID} -e artifact_name=${ARTIFACT_ID} -e artifact_version=${VERSION} -e artifact_extension=${ARTIFACT_TYPE} -e nexus_password=${NEXUS_CREDENTIALS} -e nexus_password=${nexus_password} -e build_no=${BUILD_NUMBER} -e deploy_port=${DEPLOY_PORT}"
                 }
             }
         }
