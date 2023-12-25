@@ -35,7 +35,15 @@
     - name: Stop and remove existing Docker container if it exists
       command: docker rm -f {{ docker_container_name }}
       ignore_errors: true
+    - name: Check logs of the Docker container
+      command: docker logs {{ docker_container_name }}
+      register: docker_logs
+      ignore_errors: true
 
+    - name: Display Docker container logs
+      debug:
+        var: docker_logs.stdout_lines
+      when: docker_logs.rc == 0
     - name: Run Docker container
       command: |
         docker run -d -p {{ deploy_port }}:8080 --name {{ docker_container_name }} {{ docker_image_name }}:{{ docker_image_tag }}
