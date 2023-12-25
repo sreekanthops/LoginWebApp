@@ -2,15 +2,16 @@ pipeline {
     agent any
     
     parameters {
-        string(name: 'HOST', defaultValue: 'localhost', description: 'Inventory host machine')
+        string(name: 'HOST', defaultValue: '3.111.171.172', description: 'Inventory host machine')
         string(name: 'NEXUS_URL', defaultValue: '15.207.117.191:8082/', description: 'Nexus server URL')
         string(name: 'REPOSITORY', defaultValue: 'mytask', description: 'Nexus repository')
         string(name: 'GROUP_ID', defaultValue: 'com', description: 'Nexus Group ID')
-        string(name: 'ARTIFACT_ID', defaultValue: 'exe-jar', description: 'Nexus artifact ID')
-        string(name: 'VERSION', defaultValue: '1.0.1', description: 'Nexus version')
+        string(name: 'ARTIFACT_ID', defaultValue: 'executable-jar', description: 'Nexus artifact ID')
+        string(name: 'VERSION', defaultValue: '0.0.1', description: 'Nexus version')
         string(name: 'NEXUS_VERSION', defaultValue: 'nexus3', description: 'Nexus version')
         string(name: 'ARTIFACT_TYPE', defaultValue: 'jar', description: 'Nexus artifact type')
         string(name: 'NEXUS_CREDENTIALS', defaultValue: 'nexus', description: 'Nexus credentials ID in Jenkins')
+        password(name: 'nexus_password', defaultValue: 'rupesh', description: 'Nexus password')
         string(name: 'DEPLOY_PORT', defaultValue: '8083', description: 'Container port')
     }
 
@@ -27,7 +28,7 @@ pipeline {
             steps {
                 script {
                     sh "echo ${HOST} > inv.ini"
-                    sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i inv.ini deploy.yml -e nexus_url=${NEXUS_URL} -e nexus_repo=${REPOSITORY} -e artifact_group=${GROUP_ID} -e artifact_name=${ARTIFACT_ID} -e artifact_version=${VERSION} -e artifact_extension=${ARTIFACT_TYPE} -e nexus_password=${NEXUS_CREDENTIALS} -e build_no=${BUILD_NUMBER} -e deploy_port=${DEPLOY_PORT}"
+                    sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i inv.ini deploy.yml -e nexus_url=${NEXUS_URL} -e nexus_repo=${REPOSITORY} -e artifact_group=${GROUP_ID} -e artifact_name=${ARTIFACT_ID} -e artifact_version=${VERSION} -e artifact_extension=${ARTIFACT_TYPE} -e nexus_password=${NEXUS_CREDENTIALS} -e nexus_password=${nexus_password} -e build_no=${BUILD_NUMBER} -e deploy_port=${DEPLOY_PORT}"
                 }
             }
         }
