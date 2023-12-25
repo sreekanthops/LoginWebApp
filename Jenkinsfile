@@ -1,31 +1,68 @@
 pipeline {
     agent any
-    tools {
-        maven 'localMaven'
-    }
-
+    
     parameters {
-         string(name: 'tomcat_stag', defaultValue: '35.154.81.229', description: 'Tomcat Staging Server')
+        string(name: 'SONAR_PROJECT_KEY', defaultValue: 'mytask', description: 'SonarQube project key')
+        string(name: 'SONAR_PROJECT_NAME', defaultValue: 'mytask', description: 'SonarQube project name')
+        string(name: 'SONAR_LOGIN', defaultValue: 'admin', description: 'SonarQube login')
+        password(name: 'SONAR_PASSWORD', defaultValue: 'rupesh', description: 'SonarQube password')
+        string(name: 'SONAR_HOST', defaultValue: 'http://15.207.117.191:9000', description: 'SonarQube URL')
+        string(name: 'NEXUS_VERSION', defaultValue: 'nexus3', description: 'Nexus version')
+        string(name: 'NEXUS_PROTOCOL', defaultValue: 'http', description: 'Nexus protocol')
+        string(name: 'NEXUS_URL', defaultValue: '15.207.117.191:8082/', description: 'Nexus server URL')
+        string(name: 'NEXUS_CREDENTIALS', defaultValue: 'nexus', description: 'Nexus credentials ID in Jenkins')
+        string(name: 'GROUP_ID', defaultValue: 'com', description: 'Nexus Group ID')
+        string(name: 'VERSION', defaultValue: '1.0.1', description: 'Nexus version')
+        string(name: 'REPOSITORY', defaultValue: 'mytask', description: 'Nexus repository')
+        string(name: 'ARTIFACT_ID', defaultValue: 'exe-jar', description: 'Nexus artifact ID')
+        string(name: 'ARTIFACT_TYPE', defaultValue: 'jar', description: 'Nexus artifact type')
+        string(name: 'ARTIFACT_FILE', defaultValue: 'target/executable-jar-1.0-jar-with-dependencies.jar', description: 'Path to the artifact file')
     }
 
-stages{
-        stage('Build'){
+    stages {
+        stage('Clone Repository') {
             steps {
-                sh 'mvn clean package'
-            }
-            post {
-                success {
-                    echo 'Archiving the artifacts'
-                    archiveArtifacts artifacts: '**/*.war'
+                script {
+                    // Clone repository steps here
+                    git branch: 'main', credentialsId: 'gitlab', url: 'http://15.207.117.191:8081/root/mytask.git'
                 }
             }
         }
 
-        stage ('Deployments'){
-                stage ('Deploy to Staging Server'){
-                    steps {
-                        sh "scp **/*.war jenkins@${params.tomcat_stag}:/usr/share/tomcat/webapps"
-                    }
+        stage('Build and Analyze with SonarQube') {
+            steps {
+                script {
+                    sh "mvn clean install sonar:sonar \
+                        -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${params.SONAR_PROJECT_NAME} \
+                        -Dsonar.host.url=${params.SONAR_HOST} \
+                        -Dsonar.login=${params.SONAR_LOGIN} \
+                        -Dsonar.password=${params.SONAR_PASSWORD}"
+                }
+            }
+        }
+
+        stage('Upload to Nexus Repository') {
+            steps {
+                script {
+                    // Nexus upload steps here
+                    nexusArtifactUploader(
+                        nexusVersion: "${NEXUS_VERSION}",
+                        protocol: "${NEXUS_PROTOCOL}",
+                        nexusUrl: "${NEXUS_URL}",
+                        credentialsId: "${NEXUS_CREDENTIALS}",
+                        groupId: "${GROUP_ID}",
+                        version: "${VERSION}",
+                        repository: "${REPOSITORY}",
+                        artifacts: [
+                            [
+                                artifactId: "${ARTIFACT_ID}",
+                                classifier: '',
+                                file: "${ARTIFACT_FILE}",
+                                type: "${ARTIFACT_TYPE}"
+                            ]
+                        ]
+                    )
                 }
             }
         }
