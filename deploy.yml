@@ -18,7 +18,7 @@
     docker_container_name: "{{ docker_image_name | lower }}_container"
   tasks:
     - name: Download Artifact from Nexus using curl
-      command: curl -o {{ download_destination }} -u {{ nexus_username }}:{{ nexus_password }} -O http://15.207.117.191:8082/repository/{{ nexus_repo }}/{{ artifact_group }}/{{ artifact_name }}/{{ artifact_version }}/{{ artifact_name }}-{{ artifact_version }}.jar
+      command: curl -o {{ download_destination }} -u {{ nexus_username }}:{{ nexus_password }} -O {{ nexus_url }}/{{ nexus_repo }}/{{ artifact_group }}/{{ artifact_name }}/{{ artifact_version }}/{{ artifact_name }}-{{ artifact_version }}.jar
     - name: Create Dockerfile with content
       copy:
         content: |
@@ -35,6 +35,11 @@
     - name: Stop and remove existing Docker container if it exists
       command: docker rm -f {{ docker_container_name }}
       ignore_errors: true
+
+    - name: Run Docker container
+      command: |
+        docker run -d -p {{ deploy_port }}:8080 --name {{ docker_container_name }} {{ docker_image_name }}:{{ docker_image_tag }}
+
     - name: Check logs of the Docker container
       command: docker logs {{ docker_container_name }}
       register: docker_logs
@@ -44,6 +49,3 @@
       debug:
         var: docker_logs.stdout_lines
       when: docker_logs.rc == 0
-    - name: Run Docker container
-      command: |
-        docker run -d -p {{ deploy_port }}:8080 --name {{ docker_container_name }} {{ docker_image_name }}:{{ docker_image_tag }}
