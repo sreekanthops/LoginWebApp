@@ -5,7 +5,7 @@
   vars:
     #nexus_url: "http://35.154.44.121:8082/repository/"
     nexus_url: "{{ nexus_host }}/repository/"
-    nexus_repo: "{{ nexus_repo }}/"
+    nexus_repo: "{{ nexus_repo }}"
     artifact_group: "{{ artifact_group }}"
     artifact_name: "{{ artifact_name }}"
     artifact_version: "{{ artifact_version }}"
