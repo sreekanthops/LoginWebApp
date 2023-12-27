@@ -20,14 +20,13 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                script {
-                    // Clone repository steps here
-                    git branch: 'main', credentialsId: 'gitlab', url: 'http://15.207.117.191:8081/root/mytask.git'
-                }
-            }
-        }
+//        stage('Clone Repository') {
+//            steps {
+//                script {
+//                    git branch: 'main', credentialsId: 'gitlab', url: 'http://15.207.117.191:8081/root/cdproject.git'
+//                }
+//            }
+//  
 
         stage('Build and Analyze with SonarQube') {
             steps {
